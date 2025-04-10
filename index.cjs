@@ -1,3 +1,7 @@
+const { transformTailwindClassesInText } = require("./transform.cjs");
+const babelParser = require("prettier/parser-babel");
+const typescriptParser = require("prettier/parser-typescript");
+
 module.exports = {
   parsers: {
     babel: {
@@ -12,7 +16,7 @@ module.exports = {
         return transformTailwindClassesInText(text);
       },
     },
-    typescriptreact: {
+    tsx: {
       ...typescriptParser.parsers.tsx,
       preprocess(text) {
         return transformTailwindClassesInText(text);
@@ -31,8 +35,8 @@ module.exports = {
       extensions: [".ts"],
     },
     {
-      name: "TypeScript React",
-      parsers: ["typescriptreact"],
+      name: "TypeScript TSX",
+      parsers: ["tsx"],
       extensions: [".tsx"],
     },
   ],
