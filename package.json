@@ -1,0 +1,34 @@
+{
+  "name": "tailwind-prettier",
+  "version": "1.0.10",
+  "description": "Prettier plugin to auto-wrap and sort Tailwind CSS classes.",
+  "main": "index.cjs",
+  "prettier": "./index.cjs",
+  "exports": {
+    ".": "./index.cjs"
+  },
+  "keywords": [
+    "prettier-plugin",
+    "tailwind",
+    "formatter",
+    "auto-wrap",
+    "prettier",
+    "tailwindcss"
+  ],
+  "author": "FITTHEWEB",
+  "license": "MIT",
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {
+    "tailwind-prettier": "1.0.1",
+    "prettier": "3.5.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
