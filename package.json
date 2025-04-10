@@ -24,10 +24,8 @@
     "node": ">=14"
   },
   "dependencies": {
-    "tailwind-prettier": "1.0.1",
     "prettier": "3.5.3"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   }
