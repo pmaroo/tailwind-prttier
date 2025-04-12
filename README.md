@@ -39,7 +39,7 @@ npm install --save-dev prettier tailwind-prettier
 ## 🔧 Usage
 
 ```js
-// prettier.config.js
+// prettier
 module.exports = {
   plugins: ["tailwind-prettier"]
 };
