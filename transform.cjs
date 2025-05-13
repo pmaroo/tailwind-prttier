@@ -1,16 +1,32 @@
 const { tailwindOrder } = require("./tailwind-order.cjs");
 
-function transformTemplateLiteralContent(content, indent = "  ") {
-  const parts = [];
-  const regex = /\$\{[^}]+\}|[^$]+/g;
-  let match;
+function transformTailwindClassesInText(text) {
+  return text
+    // className="..." 처리
+    .replace(/class(?:Name)?="([^"]+)"/g, (match, classNames, offset) => {
+      const indent = getIndent(text, offset);
+      const sorted = sortAndFormatClassList(classNames, indent + "  ");
+      return `className="\n${sorted}\n${indent}"`;
+    })
 
+    // className={`...`} 처리
+    .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
+      const indent = getIndent(text, offset);
+      const transformed = transformTemplateLiteral(content, indent + "  ");
+      return `className={\`\n${transformed}\n${indent}\`}`;
+    });
+}
+
+function transformTemplateLiteral(content, indent = "  ") {
+  const regex = /\$\{[^}]+\}|[^\$]+/g;
+  const parts = [];
+
+  let match;
   while ((match = regex.exec(content)) !== null) {
     const part = match[0];
     if (part.startsWith("${")) {
-      parts.push(part); // 변수 표현식 그대로
+      parts.push(`${indent}${part}`);
     } else {
-      // 문자열 클래스만 정렬
       const sorted = sortAndFormatClassList(part, indent);
       parts.push(sorted);
     }
@@ -19,20 +35,33 @@ function transformTemplateLiteralContent(content, indent = "  ") {
   return parts.join("\n");
 }
 
-function transformTailwindClassesInText(text) {
-  return text
-    // "..." 처리
-    .replace(/class(?:Name)?="([^"]+)"/g, (match, classNames, offset) => {
-      const indent = getIndent(text, offset);
-      const sorted = sortAndFormatClassList(classNames, indent + "  ");
-      return `className="\n${sorted}\n${indent}"`;
-    })
-    // {`...`} 처리
-    .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
-      const indent = getIndent(text, offset);
-      const transformed = transformTemplateLiteralContent(content, indent + "  ");
-      return `className={\`\n${transformed}\n${indent}\`}`;
-    });
+function sortAndFormatClassList(classStr, indent = "  ") {
+  const classList = classStr
+    .replace(/\n/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const ordered = classList.sort((a, b) => {
+    const prefixA = getMediaPrefix(a);
+    const prefixB = getMediaPrefix(b);
+    const baseA = getBaseClass(a);
+    const baseB = getBaseClass(b);
+
+    const prefixOrderA = mediaPrefixOrder.indexOf(prefixA);
+    const prefixOrderB = mediaPrefixOrder.indexOf(prefixB);
+
+    if (prefixOrderA !== prefixOrderB) {
+      return (prefixOrderA === -1 ? 9999 : prefixOrderA) - (prefixOrderB === -1 ? 9999 : prefixOrderB);
+    }
+
+    const baseOrderA = tailwindOrder.indexOf(baseA);
+    const baseOrderB = tailwindOrder.indexOf(baseB);
+
+    return (baseOrderA === -1 ? 9999 : baseOrderA) - (baseOrderB === -1 ? 9999 : baseOrderB);
+  });
+
+  return ordered.map(cls => `${indent}${cls}`).join("\n");
 }
 
 function getIndent(text, offset) {
@@ -53,30 +82,6 @@ function getMediaPrefix(cls) {
 
 function getBaseClass(cls) {
   return cls.split(":").pop();
-}
-
-function sortAndFormatClassList(classStr, indent = "  ") {
-  const classList = classStr.trim().split(/\s+/);
-
-  const ordered = classList.sort((a, b) => {
-    const prefixA = getMediaPrefix(a);
-    const prefixB = getMediaPrefix(b);
-    const baseA = getBaseClass(a);
-    const baseB = getBaseClass(b);
-
-    const prefixOrderA = mediaPrefixOrder.indexOf(prefixA);
-    const prefixOrderB = mediaPrefixOrder.indexOf(prefixB);
-
-    if (prefixOrderA !== prefixOrderB) {
-      return (prefixOrderA === -1 ? 9999 : prefixOrderA) - (prefixOrderB === -1 ? 9999 : prefixOrderB);
-    }
-
-    const baseOrderA = tailwindOrder.indexOf(baseA);
-    const baseOrderB = tailwindOrder.indexOf(baseB);
-    return (baseOrderA === -1 ? 9999 : baseOrderA) - (baseOrderB === -1 ? 9999 : baseOrderB);
-  });
-
-  return ordered.map(cls => `${indent}${cls}`).join("\n");
 }
 
 module.exports = { transformTailwindClassesInText };
