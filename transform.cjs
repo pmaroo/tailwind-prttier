@@ -1,39 +1,30 @@
 const { tailwindOrder } = require("./tailwind-order.cjs");
 
 function transformTailwindClassesInText(text) {
-  // "..." 또는 {`...`} 형태를 모두 매칭
   return text
+    // "..." 처리
     .replace(/class(?:Name)?="([^"]+)"/g, (match, classNames, offset) => {
-      const before = text.slice(0, offset);
-      const lastLine = before.split("\n").pop();
-      const indent = lastLine.match(/^\s*/)?.[0] || "";
-      const innerIndent = indent + "  ";
-
-      const sorted = sortAndFormatClassList(classNames, innerIndent);
+      const indent = getIndent(text, offset);
+      const sorted = sortAndFormatClassList(classNames, indent + "  ");
       return `className="\n${sorted}\n${indent}"`;
     })
-    .replace(/class(?:Name)?=\{\`([^`]*)\`\}/g, (match, classNames, offset) => {
-      const before = text.slice(0, offset);
-      const lastLine = before.split("\n").pop();
-      const indent = lastLine.match(/^\s*/)?.[0] || "";
-      const innerIndent = indent + "  ";
-
-      const sorted = sortAndFormatClassList(classNames, innerIndent);
+    // {`...`} 처리 (줄바꿈 허용)
+    .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, classNames, offset) => {
+      const indent = getIndent(text, offset);
+      const sorted = sortAndFormatClassList(classNames, indent + "  ");
       return `className={\`\n${sorted}\n${indent}\`}`;
     });
 }
 
+function getIndent(text, offset) {
+  const before = text.slice(0, offset);
+  const lastLine = before.split("\n").pop();
+  return lastLine.match(/^\s*/)?.[0] || "";
+}
+
 const mediaPrefixOrder = [
-  "",       // no prefix
-  "sm",
-  "md",
-  "lg",
-  "xl",
-  "2xl",
-  "hover",
-  "focus",
-  "active",
-  "disabled",
+  "", "sm", "md", "lg", "xl", "2xl",
+  "hover", "focus", "active", "disabled",
 ];
 
 function getMediaPrefix(cls) {
@@ -51,7 +42,6 @@ function sortAndFormatClassList(classStr, indent = "  ") {
   const ordered = classList.sort((a, b) => {
     const prefixA = getMediaPrefix(a);
     const prefixB = getMediaPrefix(b);
-
     const baseA = getBaseClass(a);
     const baseB = getBaseClass(b);
 
