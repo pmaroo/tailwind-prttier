@@ -1,5 +1,24 @@
 const { tailwindOrder } = require("./tailwind-order.cjs");
 
+function transformTemplateLiteralContent(content, indent = "  ") {
+  const parts = [];
+  const regex = /\$\{[^}]+\}|[^$]+/g;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    const part = match[0];
+    if (part.startsWith("${")) {
+      parts.push(part); // 변수 표현식 그대로
+    } else {
+      // 문자열 클래스만 정렬
+      const sorted = sortAndFormatClassList(part, indent);
+      parts.push(sorted);
+    }
+  }
+
+  return parts.join("\n");
+}
+
 function transformTailwindClassesInText(text) {
   return text
     // "..." 처리
@@ -8,11 +27,11 @@ function transformTailwindClassesInText(text) {
       const sorted = sortAndFormatClassList(classNames, indent + "  ");
       return `className="\n${sorted}\n${indent}"`;
     })
-    // {`...`} 처리 (줄바꿈 허용)
-    .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, classNames, offset) => {
+    // {`...`} 처리
+    .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
       const indent = getIndent(text, offset);
-      const sorted = sortAndFormatClassList(classNames, indent + "  ");
-      return `className={\`\n${sorted}\n${indent}\`}`;
+      const transformed = transformTemplateLiteralContent(content, indent + "  ");
+      return `className={\`\n${transformed}\n${indent}\`}`;
     });
 }
 
