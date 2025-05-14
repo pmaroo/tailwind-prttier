@@ -25,7 +25,7 @@ function transformTemplateLiteral(content, indent = "  ") {
   while ((match = regex.exec(content)) !== null) {
     const part = match[0];
     if (part.startsWith("${")) {
-      parts.push(`${indent}${part}`);
+      parts.push(part); // ✅ 들여쓰기 없이 그대로
     } else {
       const sorted = sortAndFormatClassList(part, indent);
       parts.push(sorted);
@@ -34,7 +34,6 @@ function transformTemplateLiteral(content, indent = "  ") {
 
   return parts.join("\n");
 }
-
 function sortAndFormatClassList(classStr, indent = "  ") {
   const classList = classStr
     .replace(/\n/g, " ")
