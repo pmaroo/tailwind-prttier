@@ -18,22 +18,23 @@ function transformTailwindClassesInText(text) {
 }
 
 function transformTemplateLiteral(content, indent = "  ") {
-  const regex = /\$\{[^}]+\}|[^\$]+/g;
+  const regex = /\$\{[^}]+\}|[^\$]+/g;  // ${} 내부와 그 외 텍스트 분리
   const parts = [];
 
   let match;
   while ((match = regex.exec(content)) !== null) {
     const part = match[0];
     if (part.startsWith("${")) {
-      parts.push(part); // ✅ 들여쓰기 없이 그대로
+      parts.push(part); // ${}는 그대로 두기
     } else {
-      const sorted = sortAndFormatClassList(part, indent);
+      const sorted = sortAndFormatClassList(part, indent); // 클래스 정렬
       parts.push(sorted);
     }
   }
 
-  return parts.join("\n");
+  return parts.join("\n");  // 재조합
 }
+
 function sortAndFormatClassList(classStr, indent = "  ") {
   const classList = classStr
     .replace(/\n/g, " ")
