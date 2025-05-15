@@ -29,30 +29,31 @@ function transformTailwindClassesInText(text) {
   }
 });
 }
-
-// 수정된 transformTemplateLiteral 함수
-function transformTemplateLiteral(content, baseIndent = "  ") {
+function transformTemplateLiteral(content, tagIndent = "  ") {
   const regex = /(\$\{[^}]+\})|([^$]+)/g;
   const parts = [];
+  const classIndent = tagIndent + "  "; // 2칸 더 (총 4칸)
 
   let match;
   while ((match = regex.exec(content)) !== null) {
     const [full, expr, plain] = match;
     if (expr) {
-      // ${...}도 baseIndent로만 들여쓰기
-      parts.push(baseIndent + expr.trim());
+      // ${...}도 클래스 라인과 동일한 indent 적용, trim 해서 공백 제거
+      parts.push(classIndent + expr.trim());
     } else if (plain) {
-      // 일반 문자열은 각 줄별로 trim 후 붙이기
+      // 일반 텍스트는 각 줄을 분리해 trim 후 클래스 정렬, 클래스 앞에 indent 붙임
       const lines = plain.split("\n").map(line => line.trim()).filter(Boolean);
-      const sortedLines = sortAndFormatClassList(lines.join(" "), baseIndent);
+      const sortedLines = sortAndFormatClassList(lines.join(" "), classIndent);
       parts.push(sortedLines);
     }
   }
 
+  // join 후 전체 템플릿 리터럴 내용 완성
   return parts.join("\n");
 }
 
-function sortAndFormatClassList(classStr, indent = "  ") {
+// sortAndFormatClassList는 indent를 클래스 줄마다 정확히 붙여서 반환
+function sortAndFormatClassList(classStr, indent = "    ") {
   if (typeof classStr !== "string") return "";
 
   const classList = classStr
@@ -82,6 +83,7 @@ function sortAndFormatClassList(classStr, indent = "  ") {
 
   return ordered.map(cls => `${indent}${cls}`).join("\n");
 }
+
 
 function getIndent(text, offset) {
   const before = text.slice(0, offset);
