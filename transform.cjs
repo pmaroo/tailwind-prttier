@@ -1,19 +1,31 @@
 const { tailwindOrder } = require("./tailwind-order.cjs");
 
 function transformTailwindClassesInText(text) {
+  if (typeof text !== "string") return text;
+
   return text
-    // className="..." 처리
-    .replace(/class(?:Name)?="([^"]+)"/g, (match, classNames, offset) => {
-      const indent = getIndent(text, offset);
-      const sorted = sortAndFormatClassList(classNames, indent + "  ");
-      return `className="\n${sorted}\n${indent}"`;
+    // class="..." 또는 className="..." 처리
+    .replace(/class(?:Name)?="([^"]*)"/g, (match, classNames, offset) => {
+      try {
+        const indent = getIndent(text, offset);
+        const sorted = sortAndFormatClassList(classNames, indent + "  ");
+        return `className="\n${sorted}\n${indent}"`;
+      } catch (e) {
+        console.error("Error in className=\"\" replacement:", e);
+        return match; // 변환 실패 시 원본 반환
+      }
     })
 
-    // className={`...`} 처리 (삼항 포함)
+    // className={`...`} 처리 (템플릿 리터럴)
     .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
-      const indent = getIndent(text, offset);
-      const transformed = transformTemplateLiteral(content, indent + "  ");
-      return `className={\`\n${transformed}\n${indent}\`}`;
+      try {
+        const indent = getIndent(text, offset);
+        const transformed = transformTemplateLiteral(content, indent + "  ");
+        return `className={\`\n${transformed}\n${indent}\`}`;
+      } catch (e) {
+        console.error("Error in className={`...`} replacement:", e);
+        return match;
+      }
     });
 }
 
@@ -25,7 +37,7 @@ function transformTemplateLiteral(content, indent = "  ") {
   while ((match = regex.exec(content)) !== null) {
     const [full, expr, plain] = match;
     if (expr) {
-      parts.push(expr); // ${...}는 그대로 유지
+      parts.push(expr); // ${...} 유지
     } else if (plain) {
       const sorted = sortAndFormatClassList(plain, indent);
       parts.push(sorted);
@@ -36,6 +48,8 @@ function transformTemplateLiteral(content, indent = "  ") {
 }
 
 function sortAndFormatClassList(classStr, indent = "  ") {
+  if (typeof classStr !== "string") return "";
+
   const classList = classStr
     .replace(/\n/g, " ")
     .trim()
