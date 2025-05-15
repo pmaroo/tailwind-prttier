@@ -17,17 +17,17 @@ function transformTailwindClassesInText(text) {
     })
 
     // className={`...`} 처리 (템플릿 리터럴)
-    .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
-      try {
-        const indent = getIndent(text, offset);
-        // indent + "  "를 템플릿 리터럴 내부 기본 들여쓰기 기준으로 넘김
-        const transformed = transformTemplateLiteral(content, indent + "  ");
-        return `className={\`\n${transformed}\n${indent}\`}`;
-      } catch (e) {
-        console.error("Error in className={`...`} replacement:", e);
-        return match;
-      }
-    });
+   .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
+  try {
+    const tagIndent = getTagStartIndent(text, offset);
+    const indentInsideTemplate = tagIndent + "  "; // 태그 시작 들여쓰기 + 2칸
+    const transformed = transformTemplateLiteral(content, indentInsideTemplate);
+    return `className={\`\n${transformed}\n${tagIndent}\`}`;
+  } catch (e) {
+    console.error("Error in className={`...`} replacement:", e);
+    return match;
+  }
+});
 }
 
 // 수정된 transformTemplateLiteral 함수
@@ -88,6 +88,20 @@ function getIndent(text, offset) {
   const before = text.slice(0, offset);
   const lastLine = before.split("\n").pop();
   return lastLine.match(/^\s*/)?.[0] || "";
+}
+
+function getTagStartIndent(text, offset) {
+  // offset: className={` 위치
+  // offset 위치에서 거꾸로 올라가서 <태그 시작 위치 찾기
+  const before = text.slice(0, offset);
+  const lines = before.split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].includes("<")) {
+      // 해당 줄의 들여쓰기 반환
+      return lines[i].match(/^\s*/)?.[0] || "";
+    }
+  }
+  return "";
 }
 
 const mediaPrefixOrder = [
