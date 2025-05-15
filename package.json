@@ -1,6 +1,6 @@
 {
   "name": "tailwind-prettier",
-  "version": "1.0.32",
+  "version": "1.0.33",
   "description": "Prettier plugin to auto-wrap and sort Tailwind CSS classes.",
   "main": "index.cjs",
   "prettier": "./index.cjs",
