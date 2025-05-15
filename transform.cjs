@@ -18,16 +18,16 @@ function transformTailwindClassesInText(text) {
 }
 
 function transformTemplateLiteral(content, indent = "  ") {
-  const regex = /\$\{[^}]+\}|[^\$]+/g;
+  const regex = /(\$\{[^}]+\})|([^$]+)/g;
   const parts = [];
 
   let match;
   while ((match = regex.exec(content)) !== null) {
-    const part = match[0];
-    if (part.startsWith("${")) {
-      parts.push(part);
-    } else {
-      const sorted = sortAndFormatClassList(part, indent);
+    const [full, expr, plain] = match;
+    if (expr) {
+      parts.push(expr); // ${...}는 그대로 유지
+    } else if (plain) {
+      const sorted = sortAndFormatClassList(plain, indent);
       parts.push(sorted);
     }
   }
