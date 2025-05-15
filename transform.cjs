@@ -12,7 +12,7 @@ function transformTailwindClassesInText(text) {
         return `className="\n${sorted}\n${indent}"`;
       } catch (e) {
         console.error("Error in className=\"\" replacement:", e);
-        return match; // 변환 실패 시 원본 반환
+        return match;
       }
     })
 
@@ -20,6 +20,7 @@ function transformTailwindClassesInText(text) {
     .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
       try {
         const indent = getIndent(text, offset);
+        // indent + "  "를 템플릿 리터럴 내부 기본 들여쓰기 기준으로 넘김
         const transformed = transformTemplateLiteral(content, indent + "  ");
         return `className={\`\n${transformed}\n${indent}\`}`;
       } catch (e) {
@@ -29,7 +30,8 @@ function transformTailwindClassesInText(text) {
     });
 }
 
-function transformTemplateLiteral(content, indent = "  ") {
+// 수정된 transformTemplateLiteral 함수
+function transformTemplateLiteral(content, baseIndent = "  ") {
   const regex = /(\$\{[^}]+\})|([^$]+)/g;
   const parts = [];
 
@@ -37,16 +39,20 @@ function transformTemplateLiteral(content, indent = "  ") {
   while ((match = regex.exec(content)) !== null) {
     const [full, expr, plain] = match;
     if (expr) {
-      parts.push(expr); // ${...} 유지
+      // ${...} 는 기본 indent보다 한 단계 더 들여쓰기(2칸 추가) 적용해서 넣기
+      parts.push(baseIndent + "  " + expr);
     } else if (plain) {
-      const sorted = sortAndFormatClassList(plain, indent);
-      parts.push(sorted);
+      // 일반 문자열은 각 줄 별로 들여쓰기 강제
+      const lines = plain.split("\n").map(line => line.trim()).filter(Boolean);
+      const sortedLines = sortAndFormatClassList(lines.join(" "), baseIndent + "  ");
+      // sortAndFormatClassList가 이미 indent + 클래스 줄별로 붙임
+      parts.push(sortedLines);
     }
   }
 
+  // join 시 각 줄이 이미 들여쓰기 됐으므로 단순 줄바꿈만
   return parts.join("\n");
 }
-
 function sortAndFormatClassList(classStr, indent = "  ") {
   if (typeof classStr !== "string") return "";
 
