@@ -39,20 +39,19 @@ function transformTemplateLiteral(content, baseIndent = "  ") {
   while ((match = regex.exec(content)) !== null) {
     const [full, expr, plain] = match;
     if (expr) {
-      // ${...} 는 기본 indent보다 한 단계 더 들여쓰기(2칸 추가) 적용해서 넣기
-      parts.push(baseIndent + "  " + expr);
+      // ${...}도 baseIndent로만 들여쓰기
+      parts.push(baseIndent + expr.trim());
     } else if (plain) {
-      // 일반 문자열은 각 줄 별로 들여쓰기 강제
+      // 일반 문자열은 각 줄별로 trim 후 붙이기
       const lines = plain.split("\n").map(line => line.trim()).filter(Boolean);
-      const sortedLines = sortAndFormatClassList(lines.join(" "), baseIndent + "  ");
-      // sortAndFormatClassList가 이미 indent + 클래스 줄별로 붙임
+      const sortedLines = sortAndFormatClassList(lines.join(" "), baseIndent);
       parts.push(sortedLines);
     }
   }
 
-  // join 시 각 줄이 이미 들여쓰기 됐으므로 단순 줄바꿈만
   return parts.join("\n");
 }
+
 function sortAndFormatClassList(classStr, indent = "  ") {
   if (typeof classStr !== "string") return "";
 
