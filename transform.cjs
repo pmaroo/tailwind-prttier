@@ -9,7 +9,7 @@ function transformTailwindClassesInText(text) {
       return `className="\n${sorted}\n${indent}"`;
     })
 
-    // className={`...`} 처리
+    // className={`...`} 처리 (삼항 포함)
     .replace(/class(?:Name)?=\{\`([\s\S]*?)\`\}/g, (match, content, offset) => {
       const indent = getIndent(text, offset);
       const transformed = transformTemplateLiteral(content, indent + "  ");
@@ -18,21 +18,21 @@ function transformTailwindClassesInText(text) {
 }
 
 function transformTemplateLiteral(content, indent = "  ") {
-  const regex = /\$\{[^}]+\}|[^\$]+/g;  // ${} 내부와 그 외 텍스트 분리
+  const regex = /\$\{[^}]+\}|[^\$]+/g;
   const parts = [];
 
   let match;
   while ((match = regex.exec(content)) !== null) {
     const part = match[0];
     if (part.startsWith("${")) {
-      parts.push(part); // ${}는 그대로 두기
+      parts.push(part);
     } else {
-      const sorted = sortAndFormatClassList(part, indent); // 클래스 정렬
+      const sorted = sortAndFormatClassList(part, indent);
       parts.push(sorted);
     }
   }
 
-  return parts.join("\n");  // 재조합
+  return parts.join("\n");
 }
 
 function sortAndFormatClassList(classStr, indent = "  ") {
